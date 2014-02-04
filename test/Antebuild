@@ -1,0 +1,15 @@
+
+class TestProject(cpp.Executable):
+    SourceGroups = {
+        "Folder 1": [ 
+            "main1.cpp", 
+            "foo1.cpp", 
+            "bar1.cpp", 
+        ],
+
+        "Folder 2": [
+            "main2.cpp", 
+            "foo2.cpp", 
+            "bar2.cpp", 
+        ],
+    }
