@@ -4,6 +4,8 @@ from ..specs import Solution
 from ..specs.cpp import DynamicLib, Executable, StaticLib 
 
 class Msvs2013(BaseGenerator):
+    Description = "Visual Studio 2013"
+
     def GenerateCpp(self, _baseSpec):
         return [
             { 
@@ -128,7 +130,7 @@ class Msvs2013(BaseGenerator):
         results.append('  </ImportGroup>')
 
         # Boom!
-        results.append('</Project>')
+        results.append('</Project>\n')
 
         # Now turn our array of lines into a single string.
         return "\n".join(results)
@@ -168,7 +170,7 @@ class Msvs2013(BaseGenerator):
                         results.append('    <%s Include="%s" />' % (fg['outattrib'], incl['filename']))
                 results.append('  </ItemGroup>')
 
-        results.append('</Project>')
+        results.append('</Project>\n')
 
         # Now turn our array of lines into a single string.
         return "\n".join(results)
