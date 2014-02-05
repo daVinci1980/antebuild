@@ -11,13 +11,8 @@ from internals import specs, generators
 
 # -------------------------------------------------------------------------------------------------
 def loadBuildTemplate(_opts):
-
-    filePath = _opts.inputFile
-    if os.path.isdir(filePath):
-        filePath = os.path.join(filePath, "Antebuild")
-
     initGlobals = specs.getProjectGroupDict()
-    mod = runpy.run_path(filePath, initGlobals)
+    mod = runpy.run_path(_opts.inputFile, initGlobals)
 
     return mod, initGlobals
 
@@ -29,7 +24,7 @@ def processTemplate(_rootModule, _initGlobals, _opts):
     specs = []
     for cls in usefulClasses:
         instance = cls()
-        specs.append(instance.FullySpecify())
+        specs.append(instance.FullySpecify(_opts))
 
     return specs
 
@@ -38,7 +33,7 @@ def generate(_buildSpecs, _opts):
     generator = generators.getGeneratorDict()[_opts.generator]
     
     for bs in _buildSpecs:
-        results = generator().Generate(bs)
+        results = generator().Generate(bs, _opts)
         for result in results:
             pathName = os.path.join(_opts.outDir, result["outputFilename"])
             open(pathName, "wb").write(result["outputContents"])
@@ -59,7 +54,12 @@ def parseArgs(_argv):
                         help="Where to output the results of generation.")
 
     try:
-        return parser.parse_args(_argv)
+        retArgs = parser.parse_args(_argv)
+        if os.path.isdir(retArgs.inputFile):
+            retArgs.inputFile = os.path.join(retArgs.inputFile, "Antebuild")
+
+        retArgs.pathPrefix = os.path.relpath(os.path.dirname(retArgs.inputFile), retArgs.outDir)
+        return retArgs
     except SystemExit:
         print("\nThe generators are as follows:")
         print(generators.getGeneratorListString())

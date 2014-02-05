@@ -6,22 +6,22 @@ from ..specs.cpp import DynamicLib, Executable, StaticLib
 class Msvs2013(BaseGenerator):
     Description = "Visual Studio 2013"
 
-    def GenerateCpp(self, _baseSpec):
+    def GenerateCpp(self, _baseSpec, _opts):
         return [
             { 
                 'outputFilename': "%s.vcxproj" % (_baseSpec['filename']),
-                'outputContents': self.generateVcxproj(_baseSpec)
+                'outputContents': self.generateVcxproj(_baseSpec, _opts)
             },
             {
                 'outputFilename': "%s.vcxproj.filters" % (_baseSpec['filename']),
-                'outputContents': self.generateVcxprojFilters(_baseSpec)            
+                'outputContents': self.generateVcxprojFilters(_baseSpec, _opts)            
             }
         ]
 
     # -----------------------------------------------------------------------------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
-    def generateVcxproj(self, _baseSpec):
+    def generateVcxproj(self, _baseSpec, _opts):
         results = []
         # First, boilerplate.
         results.append('<?xml version="1.0" encoding="utf-8"?>')
@@ -136,7 +136,7 @@ class Msvs2013(BaseGenerator):
         return "\n".join(results)
 
     # -----------------------------------------------------------------------------------------------------------------
-    def generateVcxprojFilters(self, _baseSpec):
+    def generateVcxprojFilters(self, _baseSpec, _opts):
         results = []
         # First, boilerplate.
         results.append('<?xml version="1.0" encoding="utf-8"?>')

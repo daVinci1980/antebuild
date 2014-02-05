@@ -3,6 +3,7 @@ from .. import base
 import copy
 import os
 import uuid
+from ...utils import fixpath
 
 # -------------------------------------------------------------------------------------------------
 class CppBase(base.SpecBase):
@@ -47,8 +48,8 @@ class CppBase(base.SpecBase):
 
     DisabledWarnings = [ ]
 
-    def FullySpecify(self):
-        retDict = super(CppBase, self).FullySpecify()
+    def FullySpecify(self, _opts):
+        retDict = super(CppBase, self).FullySpecify(_opts)
         retDict['cls'] = self.__class__
         retDict['name'] = self.__class__.__name__        
         retDict['filename'] = self.__class__.__name__.lower()
@@ -60,7 +61,7 @@ class CppBase(base.SpecBase):
         looseFiles = []
         for group, filelist in self.SourceGroups.iteritems():
             for filename in filelist:
-                fileDict = { "filename": filename, "group": group }
+                fileDict = { "filename": fixpath(filename, _opts), "group": group }
                 if os.path.splitext(filename)[1] in self.SourceSuffixes:
                     sourceFiles.append(fileDict)
                 elif os.path.splitext(filename)[1] in self.HeaderSuffixes:
@@ -68,11 +69,13 @@ class CppBase(base.SpecBase):
                 else:
                     looseFiles.append(fileDict)
 
+        includeDirs = [fixpath(incl, _opts) for incl in self.IncludeDirectories]
+
         retDict['sourcefiles'] = sourceFiles
         retDict['headerfiles'] = headerFiles
         retDict['loosefiles'] = looseFiles
         retDict['guid'] = str(uuid.uuid4())
-        retDict['includedirs'] = self.IncludeDirectories[:]
+        retDict['includedirs'] = includeDirs
         retDict['optimizationstrategy'] = "MaximizeSpeed"
         retDict['defines'] = self.Defines[:]
         retDict['disabledwarnings'] = self.DisabledWarnings[:]
@@ -83,7 +86,6 @@ class CppBase(base.SpecBase):
             groups.append(groupDefn)
 
         retDict['groups'] = groups
-
 
         return retDict
 
