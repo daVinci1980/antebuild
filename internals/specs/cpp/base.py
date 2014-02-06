@@ -50,7 +50,6 @@ class CppBase(base.SpecBase):
 
     def FullySpecify(self, _opts):
         retDict = super(CppBase, self).FullySpecify(_opts)
-        retDict['cls'] = self.__class__
         retDict['name'] = self.__class__.__name__        
         retDict['filename'] = self.__class__.__name__.lower()
         retDict['platforms'] = self.Platforms[:]

@@ -1,0 +1,5 @@
+
+mods = include("test2")
+
+class TestSolution(Solution):
+	Projects = [ mods["TestProject"] ]

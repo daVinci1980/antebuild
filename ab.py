@@ -3,28 +3,22 @@
 import argparse
 import inspect
 import os
-import runpy
 import sys
 import traceback
 
-from internals import specs, generators
+from internals import generators, specs, utils
 
 # -------------------------------------------------------------------------------------------------
 def loadBuildTemplate(_opts):
-    initGlobals = specs.getProjectGroupDict()
-    mod = runpy.run_path(_opts.inputFile, initGlobals)
-
-    return mod, initGlobals
+    return utils.include(_opts.inputFile)
 
 # -------------------------------------------------------------------------------------------------
-def processTemplate(_rootModule, _initGlobals, _opts):
-    ignoreClasses = [c for c in _initGlobals.itervalues() if inspect.isclass(c)]
-
-    usefulClasses = [c for c in _rootModule.itervalues() if inspect.isclass(c) and c not in ignoreClasses]
+def processTemplate(_rootModule, _opts):
     specs = []
-    for cls in usefulClasses:
-        instance = cls()
-        specs.append(instance.FullySpecify(_opts))
+    for cls in _rootModule.itervalues():
+        if inspect.isclass(cls):
+            instance = cls()
+            specs.append(instance.FullySpecify(_opts))
 
     return specs
 
@@ -70,8 +64,8 @@ def parseArgs(_argv):
 def main(argv=None):
     try:
         opts = parseArgs(argv)
-        rootModule, initGlobals = loadBuildTemplate(opts)
-        buildSpecs = processTemplate(rootModule, initGlobals, opts)
+        rootModule = loadBuildTemplate(opts)
+        buildSpecs = processTemplate(rootModule, opts)
         generate(buildSpecs, opts)
     except SystemExit:
         raise

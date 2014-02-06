@@ -31,7 +31,7 @@ class Msvs2013(BaseGenerator):
         results.append('  <ItemGroup Label="ProjectConfigurations">')
         for platform in _baseSpec['platforms']:
             for config in _baseSpec['configurations']:
-                results.append('    <ProjectConfiguration Include="%s|%s">' % (platform, config))
+                results.append('    <ProjectConfiguration Include="%s|%s">' % (config, platform))
                 results.append('      <Configuration>%s</Configuration>' % config)
                 results.append('      <Platform>%s</Platform>' % platform)
                 results.append('    </ProjectConfiguration>')
@@ -42,7 +42,7 @@ class Msvs2013(BaseGenerator):
         FileGroups = (
             { "specsrc": "headerfiles", "outattrib": "ClInclude"},
             { "specsrc": "sourcefiles", "outattrib": "ClCompile"},
-            { "specsrc": "loosefiles", "outattrib": "None"},
+            { "specsrc": "loosefiles",  "outattrib": "None"},
         )
 
         for fg in FileGroups:
@@ -214,5 +214,3 @@ class Msvs2013(BaseGenerator):
     def getWarningLevel(self, _baseSpec, _config, _platform):
         # TODO: Something better.
         return "Level3"
-
-
