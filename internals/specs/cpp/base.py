@@ -60,7 +60,10 @@ class CppBase(base.SpecBase):
         looseFiles = []
         for group, filelist in self.SourceGroups.iteritems():
             for filename in filelist:
-                fileDict = { "filename": fixpath(filename, _opts), "group": group }
+                srcFilename = fixpath(filename, _opts)
+                objRoot = os.path.splitext(os.path.basename(srcFilename))[0]
+
+                fileDict = { "filename": srcFilename, "objroot": objRoot, "group": group }
                 if os.path.splitext(filename)[1] in self.SourceSuffixes:
                     sourceFiles.append(fileDict)
                 elif os.path.splitext(filename)[1] in self.HeaderSuffixes:

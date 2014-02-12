@@ -2,14 +2,28 @@
 class TestProject(cpp.Executable):
     SourceGroups = {
         "Folder 1": [ 
-            "main1.cpp", 
-            "foo1.cpp", 
-            "bar1.cpp", 
+            "src/mainexe.cpp", 
+            "src/foo1.cpp", 
+            "src/bar1.cpp", 
         ],
 
         "Folder 2": [
-            "main2.cpp", 
-            "foo2.cpp", 
-            "bar2.cpp", 
+            "src/main2.cpp", 
+            "src/foo2.cpp", 
+            "src/bar2.cpp", 
+        ],
+
+        "Header Files": [
+            "src/bar1.h",
+            "src/bar2.h",
+            "src/foo1.h",
+            "src/foo2.h",
+            "src/mainexe.h",
+            "src/main2.h",
         ],
     }
+
+    # PrecompiledHeaderOptions = {
+    #     "PrecompiledHeader": "src/pch.h",
+    #     "CompileFrom": "src/pch.cpp",
+    # }
