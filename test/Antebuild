@@ -23,7 +23,7 @@ class TestProject(cpp.Executable):
         ],
     }
 
-    PrecompiledHeaderOptions = {
+    PrecompiledHeader = {
         "Prefix": "src",
         "Include": "pch.h",
         "CompileFrom": "src/pch.cpp",

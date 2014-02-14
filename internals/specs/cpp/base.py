@@ -48,7 +48,13 @@ class CppBase(base.SpecBase):
 
     DisabledWarnings = [ ]
 
+    PrecompiledHeader = None
+
     def FullySpecify(self, _opts):
+        # TODO TODO TODO
+        # TODO: I think this should be a clsmethod that returns an instance of this object, 
+        # all filled out. Rather than a dictionary. 
+
         retDict = super(CppBase, self).FullySpecify(_opts)
         retDict['name'] = self.__class__.__name__        
         retDict['filename'] = self.__class__.__name__.lower()
@@ -81,6 +87,12 @@ class CppBase(base.SpecBase):
         retDict['optimizationstrategy'] = "MaximizeSpeed"
         retDict['defines'] = self.Defines[:]
         retDict['disabledwarnings'] = self.DisabledWarnings[:]
+        if self.PrecompiledHeader is not None:
+            retDict['precompiledheader'] = copy.copy(self.PrecompiledHeader) 
+            retDict['precompiledheader']['CompileFrom'] = fixpath(retDict['precompiledheader']['CompileFrom'], _opts)
+            retDict['precompiledheader']['Prefix'] = fixpath(retDict['precompiledheader']['Prefix'], _opts)
+        else:
+            retDict['precompiledheader'] = None
 
         groups = []
         for name in self.SourceGroups.iterkeys():

@@ -2,6 +2,7 @@
 from base import BaseGenerator
 from ..specs import Solution
 from ..specs.cpp import DynamicLib, Executable, StaticLib 
+import os
 
 class Msvs2013(BaseGenerator):
     Description = "Visual Studio 2013"
@@ -22,10 +23,21 @@ class Msvs2013(BaseGenerator):
     # -----------------------------------------------------------------------------------------------------------------
     # -----------------------------------------------------------------------------------------------------------------
     def generateVcxproj(self, _baseSpec, _opts):
+        # TODO: Move this into a "fixSpec" function.
+        windowsPlatforms = []
+        for platform in _baseSpec['platforms']:
+            if platform == 'x86':
+                windowsPlatforms.append('Win32')
+            else:
+                windowsPlatforms.append(platform)
+        _baseSpec['platforms'] = windowsPlatforms
+        del windowsPlatforms
+
+
         results = []
         # First, boilerplate.
         results.append('<?xml version="1.0" encoding="utf-8"?>')
-        results.append('<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schema.microsoft.com/developer/msbuild/2003">')
+        results.append('<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">')
 
         # Then the list of build project configurations
         results.append('  <ItemGroup Label="ProjectConfigurations">')
@@ -45,11 +57,31 @@ class Msvs2013(BaseGenerator):
             { "specsrc": "loosefiles",  "outattrib": "None"},
         )
 
+        pchCompileFrom = None
+        pchHeaderPath = None
+        if _baseSpec['precompiledheader'] is not None:
+            pchCompileFrom = _baseSpec['precompiledheader']['CompileFrom']
+            pchHeaderPath = os.path.join(_baseSpec['precompiledheader']['Prefix'], _baseSpec['precompiledheader']['Include'])
+
         for fg in FileGroups:
+            isSourceFiles = fg['specsrc'] == 'sourcefiles'
+            isHeaderFiles = fg['specsrc'] == 'headerfiles'
+
             if len(_baseSpec[fg['specsrc']]):
                 results.append('  <ItemGroup>')
                 for incl in _baseSpec[fg['specsrc']]:
                     results.append('    <%s Include="%s" />' % (fg['outattrib'], incl['filename']))
+
+                if isSourceFiles and pchCompileFrom is not None:
+                    results.append('    <%s Include="%s">' % (fg['outattrib'], pchCompileFrom))
+                    for platform in _baseSpec['platforms']:
+                        for config in _baseSpec['configurations']:
+                            results.append('''      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='%s|%s'">Create</PrecompiledHeader>''' % (config, platform))
+                    results.append('    </%s>' % (fg['outattrib']))
+
+                if isHeaderFiles and pchHeaderPath is not None:
+                    results.append('    <%s Include="%s" />' % (fg['outattrib'], pchHeaderPath))
+
                 results.append('  </ItemGroup>')
 
         # Now, the globals.
@@ -58,7 +90,7 @@ class Msvs2013(BaseGenerator):
         results.append('    <Keyword>Win32Proj</Keyword>')
         results.append('    <RootNamespace>%s</RootNamespace>' % _baseSpec['name'])
         results.append('  </PropertyGroup>')
-        results.append('  <Import Project=$(VCTargetsPath)\\Microsoft.Cpp.Default.props" />')
+        results.append('  <Import Project="$(VCTargetsPath)\\Microsoft.Cpp.Default.props" />')
 
         # Up next, the basic configuration settings.
         for platform in _baseSpec['platforms']:
@@ -66,7 +98,7 @@ class Msvs2013(BaseGenerator):
                 results.append('''  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='%s|%s'" Label="Configuration">''' % (config, platform))
                 results.append('''    <ConfigurationType>%s</ConfigurationType>''' % (self.getConfigurationType(_baseSpec, config, platform)))
                 results.append('''    <UseDebugLibraries>%s</UseDebugLibraries>''' % ("true" if config == 'Debug' else "false"))
-                results.append('''    <PlatformToolset>v110</PlatformToolset>''')
+                results.append('''    <PlatformToolset>v120</PlatformToolset>''')
                 if config == 'Release':
                     results.append('''    <WholeProgramOptimization>true</WholeProgramOptimization>''')
                 results.append('''    <CharacterSet>NotSet</CharacterSet>''')
@@ -102,14 +134,15 @@ class Msvs2013(BaseGenerator):
             for config in _baseSpec['configurations']:
                 results.append('''  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='%s|%s'">''' % (config, platform))
                 results.append('''    <ClCompile>''')
-                results.append('''      <PrecompiledHeader>''')
-                results.append('''      </PrecompiledHeader>''')
+                results.append('''      <PrecompiledHeader>%s</PrecompiledHeader>''' % (self.getPrecompiledHeaderMode(_baseSpec, config, platform)))
                 results.append('''      <WarningLevel>%s</WarningLevel>''' % (self.getWarningLevel(_baseSpec, config, platform)))
                 results.append('''      <Optimization>%s</Optimization>''' % (self.getOptimizationStrategy(_baseSpec, config, platform)))
                 if config == 'Release':
                     results.append('''      <FunctionLevelLinking>true</FunctionLevelLinking>''')
                     results.append('''      <IntrinsicFunctions>true</IntrinsicFunctions>''')
                 results.append('''      <PreprocessorDefinitions>%s</PreprocessorDefinitions>''' % (self.getPreprocessorDefines(_baseSpec, config, platform)))
+                if _baseSpec["precompiledheader"] is not None:
+                    results.append('''      <PrecompiledHeaderFile>%s</PrecompiledHeaderFile>''' % (self.getPrecompiledHeaderInclude(_baseSpec, config, platform)))
                 results.append('''      <AdditionalIncludeDirectories>''')
                 results.append('''      </AdditionalIncludeDirectories>''')
                 if len(_baseSpec['disabledwarnings']):
@@ -117,7 +150,7 @@ class Msvs2013(BaseGenerator):
                 results.append('''    </ClCompile>''')
                 results.append('''    <Link>''')
                 results.append('''      <SubSystem>%s</SubSystem>''' % (self.getSubSystem(_baseSpec, config, platform)))
-                results.append('''      <GenerateDebugInfo>true</GenerateDebugInfo>''')
+                results.append('''      <GenerateDebugInformation>true</GenerateDebugInformation>''')
                 if config == 'Release':
                     results.append('''      <EnableCOMDATFolding>true</EnableCOMDATFolding>''')
                     results.append('''      <OptimizeReferences>true</OptimizeReferences>''')
@@ -140,7 +173,7 @@ class Msvs2013(BaseGenerator):
         results = []
         # First, boilerplate.
         results.append('<?xml version="1.0" encoding="utf-8"?>')
-        results.append('<Project ToolsVersion="4.0" xmlns="http://schema.microsoft.com/developer/msbuild/2003">')
+        results.append('<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">')
 
         if len(_baseSpec['groups']):
             results.append('  <ItemGroup>')
@@ -196,7 +229,26 @@ class Msvs2013(BaseGenerator):
 
     # -----------------------------------------------------------------------------------------------------------------
     def getOptimizationStrategy(self, _baseSpec, _config, _platform):
-        return _baseSpec["optimizationstrategy"]
+        if _config == 'Debug':
+            return "Disabled"
+
+        if _baseSpec["optimizationstrategy"] == 'MaximizeSpeed':
+            return "MaxSpeed"
+
+        assert("Unknown optimization strategy for this generator: '%s'" %  _baseSpec["optimizationstrategy"])
+
+    # -----------------------------------------------------------------------------------------------------------------
+    def getPrecompiledHeaderInclude(self, _baseSpec, config, platform):
+        # This is used in a key that should not be present if we are not using PCHs.
+        assert(_baseSpec["precompiledheader"] is not None)
+        return _baseSpec["precompiledheader"]["Include"]
+
+    # -----------------------------------------------------------------------------------------------------------------
+    def getPrecompiledHeaderMode(self, _baseSpec, config, platform):
+        # As with everything else here, need to support config and platform specific settings.
+        if _baseSpec["precompiledheader"] is not None:
+            return "Use"
+        return ""
 
     # -----------------------------------------------------------------------------------------------------------------
     def getPreprocessorDefines(self, _baseSpec, _config, _platform):
@@ -208,7 +260,7 @@ class Msvs2013(BaseGenerator):
 
     # -----------------------------------------------------------------------------------------------------------------
     def getSubSystem(self, _baseSpec, _config, _platform):
-        return "Windows"
+        return "Console"
 
     # -----------------------------------------------------------------------------------------------------------------
     def getWarningLevel(self, _baseSpec, _config, _platform):
