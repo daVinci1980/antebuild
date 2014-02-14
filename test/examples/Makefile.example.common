@@ -1,0 +1,53 @@
+
+VERBOSE ?= 0
+ECHO := @echo 
+
+ifeq "$(VERBOSE)" "0"
+  MAKE_SILENT := @
+  MAKE_SILENT_SUFFIX := &> /dev/null
+else
+  MAKE_SILENT := 
+  MAKE_SILENT_SUFFIX := 
+endif
+
+IGNORE_FAILURE := || true
+
+OBJ_FILES := $(SRC_FILES:%.cpp=$(INTERMEDIATE_DIR)/%.o) $(CUSTOM_OBJ_LIST)
+DEP_FILES := $(OBJ_FILES:%.o=%.d) $(CUSTOM_DEP_LIST)
+
+LD := $(CC)
+LDFLAGS := 
+
+all: $(FINAL_PATH)
+
+clean:
+	$(ECHO) ==== Cleaning object files and final target ====
+	$(MAKE_SILENT) rm -f $(INTERMEDIATE_DIR)/*.o $(MAKE_SILENT_SUFFIX)
+	$(MAKE_SILENT) rm -f $(FINAL_PATH) $(MAKE_SILENT_SUFFIX)
+
+cleandeps:
+	$(ECHO) ==== Cleaning dependency files ====
+	$(MAKE_SILENT) rm -f $(INTERMEDIATE_DIR)/*.d $(MAKE_SILENT_SUFFIX)
+
+clobber: clean cleandeps
+	$(ECHO) ==== Clobbering output directories ====
+	$(MAKE_SILENT) rmdir -p $(INTERMEDIATE_DIR) $(MAKE_SILENT_SUFFIX) $(IGNORE_FAILURE)
+	$(MAKE_SILENT) rmdir -p $(FINAL_DIR) $(MAKE_SILENT_SUFFIX) $(IGNORE_FAILURE)
+
+$(INTERMEDIATE_DIR)/%.o: %.cpp
+	$(ECHO) ==== Compiling $< ====
+	$(MAKE_SILENT) mkdir -p $(INTERMEDIATE_DIR)
+	$(MAKE_SILENT) $(CC) -c -o $@ $< $(CFLAGS) -MMD -MP
+
+$(FINAL_PATH) : $(OBJ_FILES)
+	$(ECHO) ==== Linking $@ ====
+	$(MAKE_SILENT) mkdir -p $(FINAL_DIR)
+	$(MAKE_SILENT) $(LD) -o $@ $^ $(LDFLAGS) 
+
+.PHONY: all clean cleandeps clobber
+
+.DEFAULT: all
+
+ifeq "$(filter clean cleandeps clobber,$(MAKECMDGOALS))" "$(MAKECMDGOALS)"
+  -include $(DEP_FILES)
+endif

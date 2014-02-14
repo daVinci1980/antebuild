@@ -1,4 +1,11 @@
 
+INTERMEDIATE_DIR := Release/x64
+FINAL_DIR := Release/x64
+FINAL_FILE := testproject
+FINAL_PATH := $(FINAL_DIR)/$(FINAL_FILE)
+
+SRC_FILES := ../src/bar1.cpp ../src/bar2.cpp ../src/foo1.cpp ../src/foo2.cpp ../src/main2.cpp ../src/mainexe.cpp
+
 VERBOSE ?= 0
 ECHO := @echo 
 
@@ -49,5 +56,5 @@ $(FINAL_PATH) : $(OBJ_FILES)
 .DEFAULT: all
 
 ifeq "$(filter clean cleandeps clobber,$(MAKECMDGOALS))" "$(MAKECMDGOALS)"
--include $(DEP_FILES)
+  -include $(DEP_FILES)
 endif

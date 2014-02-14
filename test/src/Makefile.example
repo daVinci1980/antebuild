@@ -1,9 +1,0 @@
-
-INTERMEDIATE_DIR := Release/x64
-FINAL_DIR := Release/x64
-FINAL_FILE := testproject
-FINAL_PATH := $(FINAL_DIR)/$(FINAL_FILE)
-
-SRC_FILES := bar1.cpp bar2.cpp foo1.cpp foo2.cpp main2.cpp mainexe.cpp
-
-include Makefile.example.common
