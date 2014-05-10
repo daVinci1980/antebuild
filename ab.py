@@ -38,21 +38,23 @@ def parseArgs(_argv):
     parser = argparse.ArgumentParser(description=description, 
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("inputFile", default="./Antebuild", nargs="?", 
-                        help="The name of the build specification.")
-
-    parser.add_argument("-g", "--generator", default="Msvs2013",
+    parser.add_argument("-g", "--generator", default="msvs2013",
                         help="Which generator to use. A list of valid generators is included below.")
 
     parser.add_argument("-o", "--outDir", default=".",
                         help="Where to output the results of generation.")
 
+    parser.add_argument("inputFile", default="./Antebuild", nargs="?", 
+                        help="The name of the build specification.")    
+
     try:
-        retArgs = parser.parse_args(_argv)
+        retArgs = parser.parse_args(_argv[1:])
         if os.path.isdir(retArgs.inputFile):
             retArgs.inputFile = os.path.join(retArgs.inputFile, "Antebuild")
 
         retArgs.pathPrefix = os.path.relpath(os.path.dirname(retArgs.inputFile), retArgs.outDir)
+        retArgs.argv = _argv[:]
+        
         return retArgs
     except SystemExit:
         print("\nThe generators are as follows:")
@@ -63,6 +65,7 @@ def parseArgs(_argv):
 # -------------------------------------------------------------------------------------------------
 def main(argv=None):
     try:
+        argv = argv if argv is not None else sys.argv[:]
         opts = parseArgs(argv)
         rootModule = loadBuildTemplate(opts)
         buildSpecs = processTemplate(rootModule, opts)

@@ -17,7 +17,11 @@ class BaseGenerator(object):
             return self.GenerateCpp(_baseSpec, _opts)
 
         if issubclass(_baseSpec['cls'], Solution):
-            return self.GenerateSln(_baseSpec, _opts)
+            retList = self.GenerateSln(_baseSpec, _opts)
+            for child in _baseSpec['projects']:
+                retList.extend(self.Generate(child, _opts))
+
+            return retList
 
         raise RuntimeError("Unable to run generator for type '%s'. This likely has not yet been implemented." % clsname(_baseSpec['cls']))
 

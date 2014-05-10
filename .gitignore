@@ -38,3 +38,4 @@ nosetests.xml
 # Thanks Apple
 .DS_Store
 
+_out

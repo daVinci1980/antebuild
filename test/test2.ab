@@ -2,14 +2,18 @@
 class TestProject(cpp.Executable):
     SourceGroups = {
         "Folder 1": [ 
-            "main1.cpp", 
-            "foo1.cpp", 
-            "bar1.cpp", 
+            "src/main1.cpp", 
+            "src/foo1.cpp", 
+            "src/bar1.cpp", 
         ],
 
         "Folder 2": [
-            "main2.cpp", 
-            "foo2.cpp", 
-            "bar2.cpp", 
+            "src/main2.cpp", 
+            "src/foo2.cpp", 
+            "src/bar2.cpp", 
         ],
+
+        "Folder 3": [
+            "src/mainexe.cpp"
+        ]
     }
